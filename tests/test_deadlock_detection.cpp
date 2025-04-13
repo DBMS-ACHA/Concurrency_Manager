@@ -13,7 +13,7 @@
 #include <chrono>
 #include <barrier>
 #include <numeric> 
-#include <iomanip> // For formatting in metrics file
+#include <iomanip>
 #include "../include/concurrency_manager.h"
 
 // Maps data items to resource IDs
@@ -122,7 +122,7 @@ std::atomic<bool> deadlockDetected(false);
 // Helper function to log RAG state to file only (no console output)
 void logRAGState(ConcurrencyManager &cm, int txnNum, const std::string &operation)
 {
-    // Only log to file, skip console output
+    
     cm.logResourceAllocationGraph("T" + std::to_string(txnNum) + " " + operation);
 }
 
@@ -510,13 +510,11 @@ std::vector<std::vector<Operation>> parseTestFile(const std::string &filename)
         else if (std::regex_search(line, match, readRe))
         {
             int txnNum = std::stoi(match[1]);
-            // Remove debug print
             txnOperations[txnNum].push_back({Operation::READ, txnNum, match[2], lineNum});
         }
         else if (std::regex_search(line, match, writeRe))
         {
             int txnNum = std::stoi(match[1]);
-            // Remove debug print
             txnOperations[txnNum].push_back({Operation::WRITE, txnNum, match[2], lineNum});
         }
         else if (std::regex_search(line, match, commitRe))

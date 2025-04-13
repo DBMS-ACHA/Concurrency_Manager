@@ -8,7 +8,7 @@
 #include "lock_manager.h"
 #include "logger.h"
 #include "deadlock_detector.h"
-#include "resource_manager.h" // Add this include
+#include "resource_manager.h"
 
 /**
  * @class ConcurrencyManager

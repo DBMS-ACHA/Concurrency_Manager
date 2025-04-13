@@ -6,7 +6,7 @@
 #include <mutex>
 #include <string>
 #include <sstream>
-#include <fstream>  // Add this for file operations
+#include <fstream>
 #include "logger.h"
 
 /**
@@ -114,7 +114,7 @@ public:
      * @param filename The name of the log file
      * @return true if file opened successfully, false otherwise
      */
-    bool initLogFile(const std::string& filename = "rag_log.txt");
+    bool initLogFile(const std::string& filename = "rag.log");
     
 private:
     /**

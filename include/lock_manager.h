@@ -8,7 +8,7 @@
 #include <string>
 #include "logger.h"
 #include "transaction.h"
-#include "resource_manager.h"  // Add this include
+#include "resource_manager.h"
 
 /**
  * @enum LockType

@@ -36,7 +36,7 @@ ResourceAllocationGraph::~ResourceAllocationGraph() {
 }
 
 void ResourceAllocationGraph::addAssignmentEdge(int resourceId, int txnId) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     assignmentEdges[resourceId].insert(txnId);
     // Remove request edge if it exists
     removeRequestEdge(txnId, resourceId);
@@ -44,7 +44,7 @@ void ResourceAllocationGraph::addAssignmentEdge(int resourceId, int txnId) {
 }
 
 void ResourceAllocationGraph::removeAssignmentEdge(int resourceId, int txnId) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     if (assignmentEdges.find(resourceId) != assignmentEdges.end()) {
         assignmentEdges[resourceId].erase(txnId);
         if (assignmentEdges[resourceId].empty()) {
@@ -55,13 +55,13 @@ void ResourceAllocationGraph::removeAssignmentEdge(int resourceId, int txnId) {
 }
 
 void ResourceAllocationGraph::addRequestEdge(int txnId, int resourceId) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     requestEdges[txnId].insert(resourceId);
     logger.debug("Added request edge: T" + std::to_string(txnId) + " → R" + std::to_string(resourceId));
 }
 
 void ResourceAllocationGraph::removeRequestEdge(int txnId, int resourceId) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     if (requestEdges.find(txnId) != requestEdges.end()) {
         requestEdges[txnId].erase(resourceId);
         if (requestEdges[txnId].empty()) {
@@ -72,13 +72,13 @@ void ResourceAllocationGraph::removeRequestEdge(int txnId, int resourceId) {
 }
 
 void ResourceAllocationGraph::addClaimEdge(int txnId, int resourceId) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     claimEdges[txnId].insert(resourceId);
     logger.debug("Added claim edge: T" + std::to_string(txnId) + " → R" + std::to_string(resourceId));
 }
 
 void ResourceAllocationGraph::removeClaimEdge(int txnId, int resourceId) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     if (claimEdges.find(txnId) != claimEdges.end()) {
         claimEdges[txnId].erase(resourceId);
         if (claimEdges[txnId].empty()) {
@@ -89,7 +89,7 @@ void ResourceAllocationGraph::removeClaimEdge(int txnId, int resourceId) {
 }
 
 bool ResourceAllocationGraph::detectDeadlock(std::vector<int>& deadlockCycle) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     
     // Start DFS from each transaction that is waiting for a resource
     for (const auto& entry : requestEdges) {
@@ -150,7 +150,7 @@ bool ResourceAllocationGraph::hasCycle(int txnId, std::vector<int>& path, std::s
 }
 
 void ResourceAllocationGraph::clearTransaction(int txnId) {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     
     // Clear request edges
     requestEdges.erase(txnId);
@@ -172,7 +172,7 @@ void ResourceAllocationGraph::clearTransaction(int txnId) {
 }
 
 std::string ResourceAllocationGraph::toString() const {
-    std::lock_guard<std::recursive_mutex> lock(mtx);  // Changed to recursive_mutex
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     std::stringstream ss;
     ss << "\n=== RESOURCE ALLOCATION GRAPH ===\n";
     
