@@ -13,7 +13,7 @@
 #include <chrono>
 #include <barrier>
 #include <numeric> 
-#include <iomanip>
+#include <iomanip> // For formatting in metrics file
 #include "../include/concurrency_manager.h"
 
 // Maps data items to resource IDs
@@ -122,7 +122,7 @@ std::atomic<bool> deadlockDetected(false);
 // Helper function to log RAG state to file only (no console output)
 void logRAGState(ConcurrencyManager &cm, int txnNum, const std::string &operation)
 {
-    
+    // Only log to file, skip console output
     cm.logResourceAllocationGraph("T" + std::to_string(txnNum) + " " + operation);
 }
 
@@ -194,7 +194,7 @@ void recordTxnEnd(int txnNum, bool committed) {
 }
 
 void writeTransactionMetricsToFile(const std::string& testFile, std::chrono::steady_clock::time_point testStartTime) {
-    std::ofstream metricsFile("transaction_metrics.txt", std::ios::app);
+    std::ofstream metricsFile("single_thread_transaction_metrics.txt", std::ios::app);
     if (!metricsFile.is_open()) {
         return; // Silently fail - no console output
     }
@@ -301,7 +301,6 @@ void writeTransactionMetricsToFile(const std::string& testFile, std::chrono::ste
 }
 
 ConcurrencyManager cm("deadlock_test.log", 100);
-std::shared_ptr<std::barrier<>> startBarrier;
 
 int calculateBackoff(int retryCount) {
     // Base backoff in milliseconds
@@ -326,8 +325,6 @@ void runTransaction(int txnNum, const std::vector<Operation> &operations, int pr
 {
     activeThreads++;
 
-    startBarrier->arrive_and_wait();
-
     int txnId = -1;
     bool wasAborted = false;
 
@@ -338,11 +335,9 @@ void runTransaction(int txnNum, const std::vector<Operation> &operations, int pr
     {
         for (int i = 0; i < (int)operations.size(); i++)
         {
-
-            // Add some sleep to simulate work
-            std::this_thread::sleep_for(std::chrono::milliseconds(10 + rand() % 50));
             const Operation &op = operations[i];
             // Handle START operation
+            std::this_thread::sleep_for(std::chrono::milliseconds(10 + rand() % 50));
             if (op.type == Operation::START)
             {
                 txnId = cm.beginTransaction("Transaction " + std::to_string(txnNum), txnId, priority);
@@ -454,7 +449,6 @@ void runTransaction(int txnNum, const std::vector<Operation> &operations, int pr
 
     std::cout << "Transaction T" << txnNum << " completed with ID " << txnId
               << (wasAborted ? " (aborted)" : " (committed)") << std::endl;
-    std::cout << "Active threads: " << activeThreads.load() << std::endl;
 
     activeThreads--;
 }
@@ -513,11 +507,13 @@ std::vector<std::vector<Operation>> parseTestFile(const std::string &filename)
         else if (std::regex_search(line, match, readRe))
         {
             int txnNum = std::stoi(match[1]);
+            // Remove debug print
             txnOperations[txnNum].push_back({Operation::READ, txnNum, match[2], lineNum});
         }
         else if (std::regex_search(line, match, writeRe))
         {
             int txnNum = std::stoi(match[1]);
+            // Remove debug print
             txnOperations[txnNum].push_back({Operation::WRITE, txnNum, match[2], lineNum});
         }
         else if (std::regex_search(line, match, commitRe))
@@ -568,11 +564,6 @@ int main(int argc, char *argv[])
 
         int numTransactions = transactionOperations.size();
 
-        // Initialize the barrier with the number of transactions
-        startBarrier = std::make_shared<std::barrier<>>(numTransactions);
-        
-        // Create threads for each transaction
-        std::vector<std::thread> threads;
 
         for (const auto &ops : transactionOperations)
         {
@@ -580,20 +571,8 @@ int main(int argc, char *argv[])
                 continue;
 
             int txnNum = ops[0].txnNum;
-            threads.emplace_back(runTransaction, txnNum, ops, 1); // Start with priority 1
+            runTransaction(txnNum, ops, 1); // Start with priority 1
         }
-
-        // Wait for all threads to complete
-        for (auto &t : threads)
-        {
-            if (t.joinable())
-            {
-                t.join();
-            }
-        }
-
-        // Wait a bit to ensure deadlock detection has run
-        std::this_thread::sleep_for(std::chrono::milliseconds(100 * 2));
 
         // Write transaction metrics to file
         writeTransactionMetricsToFile(testFile, testStartTime);

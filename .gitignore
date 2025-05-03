@@ -1,4 +1,5 @@
 transaction_metrics.txt
+single_thread_transaction_metrics.txt
 *.log
 rag_log.txt
 .vscode
